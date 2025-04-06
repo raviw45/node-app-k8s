@@ -1,42 +1,34 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: Deployment # Kubernetes resource kind we are creating
 metadata:
-  # Unique key of the Deployment instance
   name: node-app
 spec:
-  # 3 Pods should exist at all times.
-  replicas: 3
   selector:
     matchLabels:
       app: node-app
+  replicas: 2 # Number of replicas that will be created for this deployment
   template:
     metadata:
       labels:
-        # Apply this label to pods and default
-        # the Deployment label selector to this value
         app: node-app
     spec:
       containers:
         - name: node-app
-          image: raviw4/node-app
+          image: raviw4/node-app # Image that will be used to containers in the cluster
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000 # The port that the container is running on in the cluster
 
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  # Unique key of the Service instance
+apiVersion: v1 # Kubernetes API version
+kind: Service # Kubernetes resource kind we are creating
+metadata: # Metadata of the resource kind we are creating
   name: service-node-app
 spec:
-  ports:
-    # Accept traffic sent to port 80
-    - name: http
-      port: 3000
-      targetPort: 3000
   selector:
-    # Loadbalance traffic across Pods matching
-    # this label selector
     app: node-app
-  # Create an HA proxy in the cloud provider
-  # with an External IP address - *Only supported
-  # by some cloud providers*
-  type: LoadBalancer
+  ports:
+    - protocol: "TCP"
+      port: 3000 # The port that the service is running on in the cluster
+      targetPort: 3000 # The port exposed by the service
+  type: NodePort # type of the service.
